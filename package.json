@@ -1,0 +1,33 @@
+{
+  "name": "@ginger.io/jay-z",
+  "version": "0.0.1",
+  "description": "Youve got 99 problems, but application-layer encryption aint one",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "beyonce": "dist/codegen/cli.js"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.640.0",
+    "fast-json-stable-stringify": "^2.1.0",
+    "js-yaml": "^3.13.1",
+    "libsodium-wrappers": "^0.7.6"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.4",
+    "@types/libsodium-wrappers": "^0.7.7",
+    "@types/node": "^13.9.1",
+    "@types/prettier": "^1.19.0",
+    "jest": "^25.1.0",
+    "ts-jest": "^25.2.1",
+    "ts-node": "^8.7.0",
+    "typescript": "^3.8.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "jest"
+  },
+  "author": "Ginger",
+  "license": "Apache 2.0"
+}

@@ -23,7 +23,7 @@ JayZ is designed to work with KMS. But you can bring your own keys too.
 
 ### 1. Install
 
-First install beyonce - `npm install @ginger.io/jay-z`
+First install jay-z - `npm install @ginger.io/jay-z`
 
 ### 2. Get yourself a JayZ
 

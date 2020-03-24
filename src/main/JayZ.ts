@@ -78,15 +78,16 @@ export class JayZ {
 
   private async getDataKey(): Promise<DataKey> {
     if (this.dataKey === undefined) {
-      this.timesDataKeyUsed = 0
+      this.timesDataKeyUsed = 1
       this.dataKey = await this.keyProvider.generateDataKey()
     } else if (this.timesDataKeyUsed >= this.maxUsesPerDataKey) {
       memzero(this.dataKey.dataKey)
-      this.timesDataKeyUsed = 0
+      this.timesDataKeyUsed = 1
       this.dataKey = await this.keyProvider.generateDataKey()
+    } else {
+      this.timesDataKeyUsed += 1
     }
 
-    this.timesDataKeyUsed += 1
     return this.dataKey
   }
 }

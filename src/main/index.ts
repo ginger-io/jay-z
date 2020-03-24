@@ -1,4 +1,7 @@
 export { DataKey, DataKeyProvider } from "./DataKeyProvider"
-export { ItemWithEncryptedFields, JayZ } from "./JayZ"
+export * from "./Encryptor"
+export { JayZ } from "./JayZ"
 export { KMSDataKeyProvider } from "./KMSDataKeyProvider"
+export { LibsodiumEncryptor } from "./LibsodiumEncryptor"
 export { StubDataKeyProvider } from "./StubDataKeyProvider"
+export * from "./types"

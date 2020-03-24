@@ -87,6 +87,12 @@ This would use each data key for 100 `encrypt` operations, before requesting a f
 
 ## Design
 
+### Diagram
+
+![diagram.svg](diagram.svg)
+
+### Additional Details
+
 1. Every time you encrypt data, JayZ uses the passed `DataKeyProvider` to generate key material. For example, if you're using the `KMSDataKeyProvider` it will make an API call to [`generateDataKey`](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/KMS.html#generateDataKey-property).
 
 2. That key material is passed through libsodium's key derivation function, `crypto_kdf_derive_from_key`(https://libsodium.gitbook.io/doc/key_derivation) to produce an encryption key. The reason we do this is we might want to eventually support deriving othe types of keys as well - e.g. a signing key for a custom signature.

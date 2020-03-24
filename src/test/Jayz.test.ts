@@ -6,17 +6,7 @@ import {
 } from "libsodium-wrappers"
 import { JayZ } from "../main/JayZ"
 import { StubDataKeyProvider } from "../main/StubDataKeyProvider"
-
-interface BankAccount {
-  pk: string // "bank-account-123",
-  sk: string // "Flava Flav",
-  accountNumber: string
-  routingNumber: string
-  balance: number
-  notes: {
-    [key: string]: any
-  }
-}
+import { aBankAccount, BankAccount } from "./util"
 
 describe("JayZ", () => {
   beforeAll(async () => await ready)
@@ -61,17 +51,4 @@ function setup(): { bankAccount: BankAccount; jayz: JayZ } {
   const bankAccount = aBankAccount()
   const jayz = new JayZ(provider)
   return { jayz, bankAccount }
-}
-
-function aBankAccount(): BankAccount {
-  return {
-    pk: "account-123",
-    sk: "Flava Flav",
-    accountNumber: "123",
-    routingNumber: "456",
-    balance: 100,
-    notes: {
-      previousBalances: [0, 50]
-    }
-  }
 }

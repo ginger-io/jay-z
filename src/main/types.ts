@@ -14,12 +14,6 @@ export type EncryptedItemMetadata<T, K extends keyof T> = {
   encryptedFieldNames: K[]
 }
 
-export type EncryptionMaterials = {
-  encryptedDataKey: Uint8Array
-  derivedEncryptionKey: Uint8Array
-  nonce: Uint8Array
-}
-
 export type ItemWithEncryptedFields<T, K extends keyof T> = Omit<T, K> &
   {
     [P in K]: Uint8Array

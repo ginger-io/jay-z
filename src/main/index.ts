@@ -1,6 +1,6 @@
 export { DataKey, DataKeyProvider } from "./DataKeyProvider"
 export * from "./Encryptor"
-export { JayZ } from "./JayZ"
+export { JayZ, JayZConfig } from "./JayZ"
 export { KMSDataKeyProvider } from "./KMSDataKeyProvider"
 export { LibsodiumEncryptor } from "./LibsodiumEncryptor"
 export { StubDataKeyProvider } from "./StubDataKeyProvider"

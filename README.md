@@ -33,7 +33,7 @@ import { KMSDataKeyProvider, JayZ } from "@ginger.io/jay-z"
 
 const kmsKeyId = "..." // the KMS key id or arn you want to use
 const keyProvider = new KMSDataKeyProvider(kmsKeyId, new KMS())
-const jayZ = new JayZ(keyProvider)
+const jayZ = new JayZ({ keyProvider })
 ```
 
 ### 3. Encrypt Data
@@ -74,6 +74,16 @@ If you need to specify the type, just do:
 ```TypeScript
   const decryptedItem = await jayZ.decryptItem<BankAccount, any>(encrypted))
 ```
+
+## Reusing Data Keys
+
+By default, JayZ will request a fresh data key from its `DataKeyProvider` on every encryption operation. If you'd like to trade security for speed and/or cost - you can configure this with the `maxUsesPerDataKey` setting:
+
+```TypeScript
+const jayZ = new JayZ({ keyProvider: ..., maxUsesPerDataKey: 100 })
+```
+
+This would use each data key for 100 `encrypt` operations, before requesting a fresh key from the configured `DataKeyProvider`.
 
 ## Design
 

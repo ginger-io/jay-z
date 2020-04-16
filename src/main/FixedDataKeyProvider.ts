@@ -7,12 +7,12 @@ import {
 } from "libsodium-wrappers"
 import { DataKey, DataKeyProvider } from "./DataKeyProvider"
 
-/** Stub DataKeyProvider for testing  */
-export class StubDataKeyProvider implements DataKeyProvider {
-  static async forLibsodium(): Promise<StubDataKeyProvider> {
+/** A DataKeyProvider that uses a single, fixed key. This is intended for testing  */
+export class FixedDataKeyProvider implements DataKeyProvider {
+  static async forLibsodium(): Promise<FixedDataKeyProvider> {
     await ready
     const key = randombytes_buf(crypto_kdf_KEYBYTES)
-    return new StubDataKeyProvider(to_base64(key))
+    return new FixedDataKeyProvider(to_base64(key))
   }
 
   constructor(private dataKey: string) {}

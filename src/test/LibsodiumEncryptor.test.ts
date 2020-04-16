@@ -6,7 +6,7 @@ import {
   from_string
 } from "libsodium-wrappers"
 import { LibsodiumEncryptor } from "../main/LibsodiumEncryptor"
-import { StubDataKeyProvider } from "../main/StubDataKeyProvider"
+import { FixedDataKeyProvider } from "../main/FixedDataKeyProvider"
 import { KeyType } from "../main/types"
 import { aBankAccount, BankAccount } from "./util"
 
@@ -21,7 +21,7 @@ describe("LibsodiumEncryptor", () => {
   ]
 
   it("should encrypt an item", async () => {
-    const dataKeyProvider = await StubDataKeyProvider.forLibsodium()
+    const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
     const { encryptedItem, nonce } = await encryptor.encrypt({
@@ -52,7 +52,7 @@ describe("LibsodiumEncryptor", () => {
   })
 
   it("should decrypt an item", async () => {
-    const dataKeyProvider = await StubDataKeyProvider.forLibsodium()
+    const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
     const { encryptedItem, nonce } = await encryptor.encrypt({
@@ -72,7 +72,7 @@ describe("LibsodiumEncryptor", () => {
   })
 
   it("should encrypt and decrypt binary fields", async () => {
-    const dataKeyProvider = await StubDataKeyProvider.forLibsodium()
+    const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
     const binaryItem = {
@@ -97,7 +97,7 @@ describe("LibsodiumEncryptor", () => {
   })
 
   it("should encrypt and decrypt binary fields recursively", async () => {
-    const dataKeyProvider = await StubDataKeyProvider.forLibsodium()
+    const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
     const binaryItem = {

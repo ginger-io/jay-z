@@ -95,4 +95,33 @@ describe("LibsodiumEncryptor", () => {
 
     expect(decryptedItem).toEqual(binaryItem)
   })
+
+  it("should encrypt and decrypt binary fields recursively", async () => {
+    const dataKeyProvider = await StubDataKeyProvider.forLibsodium()
+    const { dataKey } = await dataKeyProvider.generateDataKey()
+
+    const binaryItem = {
+      name: "hello world",
+      data: {
+        otherData: {
+          binaryData: Buffer.from("hello world", "utf-8")
+        }
+      }
+    }
+
+    const { encryptedItem, nonce } = await encryptor.encrypt({
+      item: binaryItem,
+      fieldsToEncrypt: ["name", "data"],
+      dataKey
+    })
+
+    const { decryptedItem } = await encryptor.decrypt({
+      encryptedItem,
+      nonce,
+      dataKey,
+      fieldsToDecrypt: ["name", "data"]
+    })
+
+    expect(decryptedItem).toEqual(binaryItem)
+  })
 })

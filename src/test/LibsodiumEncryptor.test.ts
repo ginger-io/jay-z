@@ -3,7 +3,7 @@ import {
   crypto_kdf_derive_from_key,
   crypto_secretbox_easy,
   crypto_secretbox_KEYBYTES,
-  from_string,
+  from_string
 } from "libsodium-wrappers"
 import { LibsodiumEncryptor } from "../main/LibsodiumEncryptor"
 import { StubDataKeyProvider } from "../main/StubDataKeyProvider"
@@ -17,7 +17,7 @@ describe("LibsodiumEncryptor", () => {
     "accountNumber",
     "balance",
     "routingNumber",
-    "notes",
+    "notes"
   ]
 
   it("should encrypt an item", async () => {
@@ -27,7 +27,7 @@ describe("LibsodiumEncryptor", () => {
     const { encryptedItem, nonce } = await encryptor.encrypt({
       item: account,
       fieldsToEncrypt,
-      dataKey,
+      dataKey
     })
 
     expect(encryptedItem.pk).toEqual("account-123")
@@ -58,39 +58,39 @@ describe("LibsodiumEncryptor", () => {
     const { encryptedItem, nonce } = await encryptor.encrypt({
       item: account,
       fieldsToEncrypt,
-      dataKey,
+      dataKey
     })
 
     const { decryptedItem } = await encryptor.decrypt({
       encryptedItem,
       nonce,
       dataKey,
-      fieldsToDecrypt: fieldsToEncrypt,
+      fieldsToDecrypt: fieldsToEncrypt
     })
 
     expect(decryptedItem).toEqual(account)
   })
 
-  it("should handle binary fields", async () => {
+  it("should encrypt and decrypt binary fields", async () => {
     const dataKeyProvider = await StubDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
     const binaryItem = {
       name: "hello world",
-      binaryData: Buffer.from("hello world", "utf-8"),
+      binaryData: Buffer.from("hello world", "utf-8")
     }
 
     const { encryptedItem, nonce } = await encryptor.encrypt({
       item: binaryItem,
       fieldsToEncrypt: ["name", "binaryData"],
-      dataKey,
+      dataKey
     })
 
     const { decryptedItem } = await encryptor.decrypt({
       encryptedItem,
       nonce,
       dataKey,
-      fieldsToDecrypt: ["name", "binaryData"],
+      fieldsToDecrypt: ["name", "binaryData"]
     })
 
     expect(decryptedItem).toEqual(binaryItem)

@@ -9,14 +9,14 @@ import {
   memzero,
   randombytes_buf,
   ready,
-  to_string,
+  to_string
 } from "libsodium-wrappers"
 import {
   DecryptParams,
   DecryptResult,
   Encryptor,
   EncryptParams,
-  EncryptResult,
+  EncryptResult
 } from "./Encryptor"
 import { EncryptionScheme, KeyType } from "./types"
 
@@ -40,9 +40,9 @@ export class LibsodiumEncryptor implements Encryptor {
 
     const encryptedFields: { [P in K]: Uint8Array } = {} as any
 
-    fieldsToEncrypt.forEach((name) => {
-      encryptedFields[name] = crypto_secretbox_easy(
-        this.toBuffer(item[name]),
+    fieldsToEncrypt.forEach((fieldName) => {
+      encryptedFields[fieldName] = crypto_secretbox_easy(
+        this.toBuffer(item[fieldName]),
         nonce,
         encryptionKey
       )
@@ -63,7 +63,7 @@ export class LibsodiumEncryptor implements Encryptor {
     const decryptionKey = this.deriveKey(dataKey, KeyType.ENCRYPTION)
 
     const decryptedItem: { [P in keyof T]: T[P] } = {
-      ...encryptedItem,
+      ...encryptedItem
     } as any
 
     fieldsToDecrypt.forEach((fieldName) => {

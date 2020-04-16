@@ -6,7 +6,7 @@ import {
 } from "libsodium-wrappers"
 import { DataKey, DataKeyProvider } from "../main/DataKeyProvider"
 import { JayZ, JayZConfig } from "../main/JayZ"
-import { StubDataKeyProvider } from "../main/StubDataKeyProvider"
+import { FixedDataKeyProvider } from "../main/FixedDataKeyProvider"
 import { aBankAccount, BankAccount } from "./util"
 
 describe("JayZ", () => {
@@ -78,7 +78,7 @@ describe("JayZ", () => {
 
 function setup(
   config: JayZConfig = {
-    keyProvider: new StubDataKeyProvider(
+    keyProvider: new FixedDataKeyProvider(
       to_base64(randombytes_buf(crypto_kdf_KEYBYTES))
     )
   }

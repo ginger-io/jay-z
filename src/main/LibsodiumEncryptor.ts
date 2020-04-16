@@ -20,6 +20,12 @@ import {
 } from "./Encryptor"
 import { EncryptionScheme, KeyType } from "./types"
 
+/** JSON.parse returns this object, which isn't a node Buffer */
+export type JSONBuffer = {
+  data: Array<number>
+  type: "Buffer"
+}
+
 export class LibsodiumEncryptor implements Encryptor {
   public readonly scheme = EncryptionScheme.V0_LIBSODIUM
 
@@ -34,9 +40,9 @@ export class LibsodiumEncryptor implements Encryptor {
 
     const encryptedFields: { [P in K]: Uint8Array } = {} as any
 
-    fieldsToEncrypt.forEach(name => {
-      encryptedFields[name] = crypto_secretbox_easy(
-        this.toBuffer(item[name]),
+    fieldsToEncrypt.forEach((fieldName) => {
+      encryptedFields[fieldName] = crypto_secretbox_easy(
+        this.toBuffer(item[fieldName]),
         nonce,
         encryptionKey
       )
@@ -60,10 +66,20 @@ export class LibsodiumEncryptor implements Encryptor {
       ...encryptedItem
     } as any
 
-    fieldsToDecrypt.forEach(name => {
-      const cipherText = encryptedItem[name]
+    fieldsToDecrypt.forEach((fieldName) => {
+      const cipherText = encryptedItem[fieldName]
       const json = crypto_secretbox_open_easy(cipherText, nonce, decryptionKey)
-      decryptedItem[name] = JSON.parse(to_string(json))
+      const fieldValue = JSON.parse(to_string(json))
+
+      // If you JSON.parse an object with a binary field that was stringified,
+      // you don't get a Buffer/Uint8Array back but rather a JSON representation of it
+      // So we special case here to convert JSON representations of buffers back to the expected type.
+      if (this.isJSONBuffer(fieldValue)) {
+        const buffer = (this.toBufferFromJSON(fieldValue) as unknown) as T[K]
+        decryptedItem[fieldName] = buffer
+      } else {
+        decryptedItem[fieldName] = fieldValue
+      }
     })
 
     memzero(decryptionKey)
@@ -80,6 +96,16 @@ export class LibsodiumEncryptor implements Encryptor {
     )
 
     return key
+  }
+
+  private toBufferFromJSON(jsonBuffer: JSONBuffer): Uint8Array {
+    return Buffer.from(jsonBuffer)
+  }
+
+  private isJSONBuffer(obj: any): obj is JSONBuffer {
+    return (
+      obj !== undefined && obj.data instanceof Array && obj.type === "Buffer"
+    )
   }
 
   private toBuffer<T extends {}>(value: T): Uint8Array {

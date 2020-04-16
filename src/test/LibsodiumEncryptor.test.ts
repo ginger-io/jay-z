@@ -40,7 +40,7 @@ describe("LibsodiumEncryptor", () => {
       dataKey
     )
 
-    fieldsToEncrypt.forEach(fieldName => {
+    fieldsToEncrypt.forEach((fieldName) => {
       const expectedValue = crypto_secretbox_easy(
         from_string(stringify(account[fieldName])),
         nonce,
@@ -69,5 +69,30 @@ describe("LibsodiumEncryptor", () => {
     })
 
     expect(decryptedItem).toEqual(account)
+  })
+
+  it("should encrypt and decrypt binary fields", async () => {
+    const dataKeyProvider = await StubDataKeyProvider.forLibsodium()
+    const { dataKey } = await dataKeyProvider.generateDataKey()
+
+    const binaryItem = {
+      name: "hello world",
+      binaryData: Buffer.from("hello world", "utf-8")
+    }
+
+    const { encryptedItem, nonce } = await encryptor.encrypt({
+      item: binaryItem,
+      fieldsToEncrypt: ["name", "binaryData"],
+      dataKey
+    })
+
+    const { decryptedItem } = await encryptor.decrypt({
+      encryptedItem,
+      nonce,
+      dataKey,
+      fieldsToDecrypt: ["name", "binaryData"]
+    })
+
+    expect(decryptedItem).toEqual(binaryItem)
   })
 })

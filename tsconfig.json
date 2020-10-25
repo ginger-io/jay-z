@@ -8,6 +8,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
+    "declarationMap": true,
     "baseUrl": "./src"
   },
   "exclude": ["./dist", "./src/test/*"]

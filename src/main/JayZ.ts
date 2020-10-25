@@ -61,7 +61,7 @@ export class JayZ {
     } = encryptedJayZItem.__jayz__metadata
 
     const encryptedItem = { ...encryptedJayZItem }
-    delete encryptedItem.__jayz__metadata
+    delete (encryptedItem as any).__jayz__metadata
 
     const dataKey = await this.keyProvider.decryptDataKey(encryptedDataKey)
 

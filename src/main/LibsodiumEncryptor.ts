@@ -29,11 +29,9 @@ export type JSONBuffer = {
 export class LibsodiumEncryptor implements Encryptor {
   public readonly scheme = EncryptionScheme.V0_LIBSODIUM
 
-  async encrypt<T, K extends keyof T>(
+  encrypt<T, K extends keyof T>(
     params: EncryptParams<T, K>
-  ): Promise<EncryptResult<T, K>> {
-    await ready
-
+  ): EncryptResult<T, K> {
     const { item, fieldsToEncrypt, dataKey } = params
     const nonce = randombytes_buf(crypto_secretbox_NONCEBYTES)
     const encryptionKey = this.deriveKey(dataKey, KeyType.ENCRYPTION)
@@ -54,11 +52,7 @@ export class LibsodiumEncryptor implements Encryptor {
     return { encryptedItem, nonce }
   }
 
-  async decrypt<T, K extends keyof T>(
-    params: DecryptParams<T, K>
-  ): Promise<DecryptResult<T>> {
-    await ready
-
+  decrypt<T, K extends keyof T>(params: DecryptParams<T, K>): DecryptResult<T> {
     const { encryptedItem, fieldsToDecrypt, nonce, dataKey } = params
     const decryptionKey = this.deriveKey(dataKey, KeyType.ENCRYPTION)
 

@@ -1,4 +1,4 @@
-import { memzero } from "libsodium-wrappers"
+import { memzero, ready } from "libsodium-wrappers"
 import { DataKey, DataKeyProvider } from "./DataKeyProvider"
 import { Encryptor } from "./Encryptor"
 import { LibsodiumEncryptor } from "./LibsodiumEncryptor"
@@ -41,12 +41,12 @@ export class JayZ {
       return []
     }
 
+    await ready
     const itemsWithKey = await this.zipItemsWithDataKey(itemsToEncrypt)
-
-    const itemPromises = itemsWithKey.map(async ({ itemToEncrypt, key }) => {
+    const items = itemsWithKey.map(({ itemToEncrypt, key }) => {
       const { item, fieldsToEncrypt } = itemToEncrypt
       const { dataKey, encryptedDataKey } = key
-      const { encryptedItem, nonce } = await this.encryptor.encrypt({
+      const { encryptedItem, nonce } = this.encryptor.encrypt({
         item,
         fieldsToEncrypt,
         dataKey
@@ -65,7 +65,7 @@ export class JayZ {
       }
     })
 
-    return Promise.all(itemPromises)
+    return items
   }
 
   async decryptItems<T, K extends keyof T>(
@@ -75,6 +75,7 @@ export class JayZ {
       return []
     }
 
+    await ready
     const itemPromises = itemsToDecrypt.map(async (item) => {
       const {
         nonce,
@@ -86,8 +87,7 @@ export class JayZ {
       delete (encryptedItem as any).__jayz__metadata
 
       const dataKey = await this.keyProvider.decryptDataKey(encryptedDataKey)
-
-      const { decryptedItem } = await this.encryptor.decrypt<T, K>({
+      const { decryptedItem } = this.encryptor.decrypt<T, K>({
         encryptedItem,
         fieldsToDecrypt: encryptedFieldNames,
         dataKey,
@@ -119,9 +119,7 @@ export class JayZ {
     })
 
     const itemWithDataKeyPromises = itemsWithDataKeys.map(
-      async ({ itemToEncrypt, key }) => {
-        return { itemToEncrypt, key: await key }
-      }
+      async ({ itemToEncrypt, key }) => ({ itemToEncrypt, key: await key })
     )
 
     return Promise.all(itemWithDataKeyPromises)

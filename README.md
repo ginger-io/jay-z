@@ -51,7 +51,7 @@ const bankAccount: BankAccount = {
   routingNumber: "rn-123"
 }
 
-const encryptedItem = await jayZ.encryptItem(bankAccount, ["accountNumber", "routingNumber"])
+const encryptedItem = await jayZ.encryptItems({ item: bankAccount, fieldsToEncrypt: ["accountNumber", "routingNumber"] })
 ```
 
 Here you specify _only_ the fields you want encrypted. JayZ doesn't suffer foolish mistakes - so this API is completely type-safe.
@@ -64,7 +64,7 @@ If you have the encrypted item in scope with the right types,
 you can just do:
 
 ```TypeScript
-  const decryptedItem = await jayZ.decryptItem(encrypted))
+  const [decryptedItem] = await jayZ.decryptItems([encryptedItem]))
 ```
 
 And the correct type, `BankAccount` in this example will be automatically inferred.
@@ -72,7 +72,7 @@ And the correct type, `BankAccount` in this example will be automatically inferr
 If you need to specify the type, just do:
 
 ```TypeScript
-  const decryptedItem = await jayZ.decryptItem<BankAccount, any>(encrypted))
+  const [decryptedItem] = await jayZ.decryptItems<BankAccount, any>([encryptedItem]))
 ```
 
 ## Reusing Data Keys

@@ -2,7 +2,7 @@ import {
   crypto_kdf_KEYBYTES,
   randombytes_buf,
   ready,
-  to_base64
+  to_base64,
 } from "libsodium-wrappers"
 import { DataKey, DataKeyProvider } from "../main/DataKeyProvider"
 import { JayZ, JayZConfig } from "../main/JayZ"
@@ -16,12 +16,14 @@ describe("JayZ", () => {
     "accountNumber",
     "balance",
     "routingNumber",
-    "notes"
+    "notes",
   ]
 
   it("should encrypt an item", async () => {
     const { jayz, bankAccount } = setup()
-    const encryptedItem = await jayz.encryptItem(bankAccount, fieldsToEncrypt)
+    const [encryptedItem] = await jayz.encryptItems([
+      { item: bankAccount, fieldsToEncrypt },
+    ])
 
     expect(encryptedItem.pk).toEqual("account-123")
     expect(encryptedItem.sk).toEqual("Flava Flav")
@@ -29,50 +31,106 @@ describe("JayZ", () => {
     expect(encryptedItem.routingNumber).not.toEqual("456")
     expect(encryptedItem.balance).not.toEqual(100)
     expect(encryptedItem.notes).not.toEqual({
-      previousBalances: [0, 50]
+      previousBalances: [0, 50],
     })
   })
 
   it("should decrypt an item", async () => {
     const { jayz, bankAccount } = setup()
-    const encryptedItem = await jayz.encryptItem(bankAccount, fieldsToEncrypt)
-    const decryptedItem = await jayz.decryptItem(encryptedItem)
+
+    const [encryptedItem] = await jayz.encryptItems([
+      { item: bankAccount, fieldsToEncrypt },
+    ])
+
+    const [decryptedItem] = await jayz.decryptItems([encryptedItem])
     expect(decryptedItem).toEqual(bankAccount)
   })
 
-  it("should not reuse data keys by default", async () => {
-    const keyProvider = new CountingKeyProvider()
-    const { jayz, bankAccount } = setup({
-      keyProvider
-    })
-
-    expect(keyProvider.keysIssued).toEqual(0)
-    await jayz.encryptItem(bankAccount, fieldsToEncrypt)
-    expect(keyProvider.keysIssued).toEqual(1)
-
-    await jayz.encryptItem(bankAccount, fieldsToEncrypt)
-    expect(keyProvider.keysIssued).toEqual(2)
-  })
-
-  it("should reuse data keys when configured to do so", async () => {
+  it("should not reuse data keys by default when encryptItems invoked with multiple items", async () => {
     const keyProvider = new CountingKeyProvider()
     const { jayz, bankAccount } = setup({
       keyProvider,
-      maxUsesPerDataKey: 2
     })
 
-    const item1 = await jayz.encryptItem(bankAccount, fieldsToEncrypt)
-    expect(keyProvider.keysIssued).toEqual(1)
+    expect(keyProvider.keysIssued).toEqual(0)
+    await jayz.encryptItems([
+      { item: bankAccount, fieldsToEncrypt },
+      { item: bankAccount, fieldsToEncrypt },
+    ])
 
-    const item2 = await jayz.encryptItem(bankAccount, fieldsToEncrypt)
-    expect(keyProvider.keysIssued).toEqual(1)
-
-    const item3 = await jayz.encryptItem(bankAccount, fieldsToEncrypt)
     expect(keyProvider.keysIssued).toEqual(2)
+  })
 
-    expect(await jayz.decryptItem(item1)).toEqual(bankAccount)
-    expect(await jayz.decryptItem(item2)).toEqual(bankAccount)
-    expect(await jayz.decryptItem(item3)).toEqual(bankAccount)
+  it("should not reuse data keys by default when encryptItems invoked multiple times", async () => {
+    const keyProvider = new CountingKeyProvider()
+    const { jayz, bankAccount } = setup({
+      keyProvider,
+    })
+
+    expect(keyProvider.keysIssued).toEqual(0)
+    await jayz.encryptItems([{ item: bankAccount, fieldsToEncrypt }])
+    expect(keyProvider.keysIssued).toEqual(1)
+
+    await jayz.encryptItems([{ item: bankAccount, fieldsToEncrypt }])
+    expect(keyProvider.keysIssued).toEqual(2)
+  })
+
+  it("should reuse data keys when encryptItems invoked once with multiple items", async () => {
+    const keyProvider = new CountingKeyProvider()
+    const { jayz, bankAccount } = setup({
+      keyProvider,
+      maxUsesPerDataKey: 2,
+    })
+
+    const [item1, item2, item3] = await jayz.encryptItems([
+      { item: bankAccount, fieldsToEncrypt },
+      { item: bankAccount, fieldsToEncrypt },
+      { item: bankAccount, fieldsToEncrypt },
+    ])
+
+    const [
+      decryptedItem1,
+      decryptedItem2,
+      decryptedItem3,
+    ] = await jayz.decryptItems([item1, item2, item3])
+
+    expect(decryptedItem1).toEqual(bankAccount)
+    expect(decryptedItem2).toEqual(bankAccount)
+    expect(decryptedItem3).toEqual(bankAccount)
+    expect(keyProvider.keysIssued).toEqual(2)
+    expect(item1.__jayz__metadata.encryptedDataKey).toEqual(
+      item2.__jayz__metadata.encryptedDataKey
+    )
+
+    expect(item1.__jayz__metadata.encryptedDataKey).not.toEqual(
+      item3.__jayz__metadata.encryptedDataKey
+    )
+  })
+
+  it("should reuse data keys when encryptItems invoked multiple times", async () => {
+    const keyProvider = new CountingKeyProvider()
+    const { jayz, bankAccount } = setup({
+      keyProvider,
+      maxUsesPerDataKey: 2,
+    })
+
+    const encryptAndDecrypt = async () => {
+      const [encryptedItem] = await jayz.encryptItems([
+        { item: bankAccount, fieldsToEncrypt },
+      ])
+
+      const [decryptedItem] = await jayz.decryptItems([encryptedItem])
+      expect(decryptedItem).toEqual(bankAccount)
+    }
+
+    await encryptAndDecrypt()
+    expect(keyProvider.keysIssued).toEqual(1)
+
+    await encryptAndDecrypt()
+    expect(keyProvider.keysIssued).toEqual(1)
+
+    await encryptAndDecrypt()
+    expect(keyProvider.keysIssued).toEqual(2)
   })
 })
 
@@ -80,7 +138,7 @@ function setup(
   config: JayZConfig = {
     keyProvider: new FixedDataKeyProvider(
       to_base64(randombytes_buf(crypto_kdf_KEYBYTES))
-    )
+    ),
   }
 ): { bankAccount: BankAccount; jayz: JayZ } {
   const bankAccount = aBankAccount()
@@ -96,8 +154,8 @@ class CountingKeyProvider implements DataKeyProvider {
     const key = randombytes_buf(crypto_kdf_KEYBYTES)
     this.keysIssued += 1
     return {
-      encryptedDataKey: key.slice(0),
-      dataKey: key.slice(0)
+      encryptedDataKey: key,
+      dataKey: key,
     }
   }
 

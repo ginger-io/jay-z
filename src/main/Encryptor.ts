@@ -27,9 +27,7 @@ export interface Encryptor {
 
   encrypt<T, K extends keyof T>(
     params: EncryptParams<T, K>
-  ): Promise<EncryptResult<T, K>>
+  ): EncryptResult<T, K>
 
-  decrypt<T, K extends keyof T>(
-    params: DecryptParams<T, K>
-  ): Promise<DecryptResult<T>>
+  decrypt<T, K extends keyof T>(params: DecryptParams<T, K>): DecryptResult<T>
 }

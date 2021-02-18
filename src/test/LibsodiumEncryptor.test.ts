@@ -5,8 +5,8 @@ import {
   crypto_secretbox_KEYBYTES,
   from_string
 } from "libsodium-wrappers"
-import { LibsodiumEncryptor } from "../main/LibsodiumEncryptor"
 import { FixedDataKeyProvider } from "../main/FixedDataKeyProvider"
+import { LibsodiumEncryptor } from "../main/LibsodiumEncryptor"
 import { KeyType } from "../main/types"
 import { aBankAccount, BankAccount } from "./util"
 
@@ -71,7 +71,7 @@ describe("LibsodiumEncryptor", () => {
     expect(decryptedItem).toEqual(account)
   })
 
-  it("should decrypt an item with undefined field", async () => {
+  it("should encrypt and decrypt an item with an undefined or null field", async () => {
     const fieldsToEncrypt: (keyof BankAccount)[] = [
       "accountNumber",
       "balance",
@@ -83,21 +83,24 @@ describe("LibsodiumEncryptor", () => {
     const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
-    const item = { ...account, bankName: undefined }
-    const { encryptedItem, nonce } = encryptor.encrypt({
-      item,
-      fieldsToEncrypt,
-      dataKey
-    })
+    const emptyValues = [undefined, null]
+    emptyValues.forEach((emptyValue) => {
+      const item = { ...account, bankName: emptyValue }
+      const { encryptedItem, nonce } = encryptor.encrypt({
+        item,
+        fieldsToEncrypt,
+        dataKey
+      })
 
-    const { decryptedItem } = encryptor.decrypt({
-      encryptedItem,
-      nonce,
-      dataKey,
-      fieldsToDecrypt: fieldsToEncrypt
-    })
+      const { decryptedItem } = encryptor.decrypt({
+        encryptedItem,
+        nonce,
+        dataKey,
+        fieldsToDecrypt: fieldsToEncrypt
+      })
 
-    expect(decryptedItem).toEqual(item)
+      expect(decryptedItem).toEqual(item)
+    })
   })
 
   it("should encrypt and decrypt binary fields", async () => {

@@ -5,8 +5,8 @@ import {
   crypto_secretbox_KEYBYTES,
   from_string
 } from "libsodium-wrappers"
-import { LibsodiumEncryptor } from "../main/LibsodiumEncryptor"
 import { FixedDataKeyProvider } from "../main/FixedDataKeyProvider"
+import { LibsodiumEncryptor } from "../main/LibsodiumEncryptor"
 import { KeyType } from "../main/types"
 import { aBankAccount, BankAccount } from "./util"
 
@@ -24,7 +24,7 @@ describe("LibsodiumEncryptor", () => {
     const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
-    const { encryptedItem, nonce } = await encryptor.encrypt({
+    const { encryptedItem, nonce } = encryptor.encrypt({
       item: account,
       fieldsToEncrypt,
       dataKey
@@ -55,13 +55,13 @@ describe("LibsodiumEncryptor", () => {
     const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
-    const { encryptedItem, nonce } = await encryptor.encrypt({
+    const { encryptedItem, nonce } = encryptor.encrypt({
       item: account,
       fieldsToEncrypt,
       dataKey
     })
 
-    const { decryptedItem } = await encryptor.decrypt({
+    const { decryptedItem } = encryptor.decrypt({
       encryptedItem,
       nonce,
       dataKey,
@@ -69,6 +69,38 @@ describe("LibsodiumEncryptor", () => {
     })
 
     expect(decryptedItem).toEqual(account)
+  })
+
+  it("should encrypt and decrypt an item with an undefined or null field", async () => {
+    const fieldsToEncrypt: (keyof BankAccount)[] = [
+      "accountNumber",
+      "balance",
+      "routingNumber",
+      "notes",
+      "bankName"
+    ]
+
+    const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
+    const { dataKey } = await dataKeyProvider.generateDataKey()
+
+    const emptyValues = [undefined, null]
+    emptyValues.forEach((emptyValue) => {
+      const item = { ...account, bankName: emptyValue }
+      const { encryptedItem, nonce } = encryptor.encrypt({
+        item,
+        fieldsToEncrypt,
+        dataKey
+      })
+
+      const { decryptedItem } = encryptor.decrypt({
+        encryptedItem,
+        nonce,
+        dataKey,
+        fieldsToDecrypt: fieldsToEncrypt
+      })
+
+      expect(decryptedItem).toEqual(item)
+    })
   })
 
   it("should encrypt and decrypt binary fields", async () => {
@@ -80,13 +112,13 @@ describe("LibsodiumEncryptor", () => {
       binaryData: Buffer.from("hello world", "utf-8")
     }
 
-    const { encryptedItem, nonce } = await encryptor.encrypt({
+    const { encryptedItem, nonce } = encryptor.encrypt({
       item: binaryItem,
       fieldsToEncrypt: ["name", "binaryData"],
       dataKey
     })
 
-    const { decryptedItem } = await encryptor.decrypt({
+    const { decryptedItem } = encryptor.decrypt({
       encryptedItem,
       nonce,
       dataKey,
@@ -109,13 +141,13 @@ describe("LibsodiumEncryptor", () => {
       }
     }
 
-    const { encryptedItem, nonce } = await encryptor.encrypt({
+    const { encryptedItem, nonce } = encryptor.encrypt({
       item: binaryItem,
       fieldsToEncrypt: ["name", "data"],
       dataKey
     })
 
-    const { decryptedItem } = await encryptor.decrypt({
+    const { decryptedItem } = encryptor.decrypt({
       encryptedItem,
       nonce,
       dataKey,

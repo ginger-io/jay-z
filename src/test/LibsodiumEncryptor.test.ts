@@ -24,7 +24,7 @@ describe("LibsodiumEncryptor", () => {
     const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
-    const { encryptedItem, nonce } = await encryptor.encrypt({
+    const { encryptedItem, nonce } = encryptor.encrypt({
       item: account,
       fieldsToEncrypt,
       dataKey
@@ -55,13 +55,13 @@ describe("LibsodiumEncryptor", () => {
     const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
-    const { encryptedItem, nonce } = await encryptor.encrypt({
+    const { encryptedItem, nonce } = encryptor.encrypt({
       item: account,
       fieldsToEncrypt,
       dataKey
     })
 
-    const { decryptedItem } = await encryptor.decrypt({
+    const { decryptedItem } = encryptor.decrypt({
       encryptedItem,
       nonce,
       dataKey,
@@ -84,13 +84,13 @@ describe("LibsodiumEncryptor", () => {
     const { dataKey } = await dataKeyProvider.generateDataKey()
 
     const item = { ...account, bankName: undefined }
-    const { encryptedItem, nonce } = await encryptor.encrypt({
+    const { encryptedItem, nonce } = encryptor.encrypt({
       item,
       fieldsToEncrypt,
       dataKey
     })
 
-    const { decryptedItem } = await encryptor.decrypt({
+    const { decryptedItem } = encryptor.decrypt({
       encryptedItem,
       nonce,
       dataKey,
@@ -109,13 +109,13 @@ describe("LibsodiumEncryptor", () => {
       binaryData: Buffer.from("hello world", "utf-8")
     }
 
-    const { encryptedItem, nonce } = await encryptor.encrypt({
+    const { encryptedItem, nonce } = encryptor.encrypt({
       item: binaryItem,
       fieldsToEncrypt: ["name", "binaryData"],
       dataKey
     })
 
-    const { decryptedItem } = await encryptor.decrypt({
+    const { decryptedItem } = encryptor.decrypt({
       encryptedItem,
       nonce,
       dataKey,
@@ -138,13 +138,13 @@ describe("LibsodiumEncryptor", () => {
       }
     }
 
-    const { encryptedItem, nonce } = await encryptor.encrypt({
+    const { encryptedItem, nonce } = encryptor.encrypt({
       item: binaryItem,
       fieldsToEncrypt: ["name", "data"],
       dataKey
     })
 
-    const { decryptedItem } = await encryptor.decrypt({
+    const { decryptedItem } = encryptor.decrypt({
       encryptedItem,
       nonce,
       dataKey,

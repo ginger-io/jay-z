@@ -18,7 +18,7 @@ import {
   EncryptParams,
   EncryptResult
 } from "./Encryptor"
-import { EncryptionScheme, KeyType } from "./types"
+import { EncryptionScheme, ItemWithEncryptedFields, KeyType } from "./types"
 
 /** JSON.parse returns this object, which isn't a node Buffer */
 export type JSONBuffer = {
@@ -36,14 +36,19 @@ export class LibsodiumEncryptor implements Encryptor {
     const nonce = randombytes_buf(crypto_secretbox_NONCEBYTES)
     const encryptionKey = this.deriveKey(dataKey, KeyType.ENCRYPTION)
 
-    const encryptedFields: { [P in K]: Uint8Array } = {} as any
+    const encryptedFields: {
+      [P in K]: Uint8Array
+    } = {} as ItemWithEncryptedFields<T, K>
 
     fieldsToEncrypt.forEach((fieldName) => {
-      encryptedFields[fieldName] = crypto_secretbox_easy(
-        this.toBuffer(item[fieldName]),
-        nonce,
-        encryptionKey
-      )
+      const fieldValue = item[fieldName]
+      if (fieldValue !== undefined && fieldValue !== null) {
+        encryptedFields[fieldName] = crypto_secretbox_easy(
+          this.toBuffer(fieldValue),
+          nonce,
+          encryptionKey
+        )
+      }
     })
 
     memzero(encryptionKey)
@@ -62,18 +67,22 @@ export class LibsodiumEncryptor implements Encryptor {
 
     fieldsToDecrypt.forEach((fieldName) => {
       const cipherText = encryptedItem[fieldName]
-      const json = crypto_secretbox_open_easy(cipherText, nonce, decryptionKey)
-      const text = to_string(json)
-      const fieldValue = text !== "undefined" ? JSON.parse(text) : undefined;
+      if (cipherText) {
+        const jsonBytes = crypto_secretbox_open_easy(
+          cipherText,
+          nonce,
+          decryptionKey
+        )
+        const fieldValue = JSON.parse(to_string(jsonBytes))
 
-      // If you JSON.parse an object with a binary field that was stringified,
-      // you don't get a Buffer/Uint8Array back but rather a JSON representation of it
-      // So we special case here to convert JSON representations of buffers back to the expected type.
-      decryptedItem[fieldName] = this.convertBinaryFieldsToBuffers(fieldValue)
+        // If you JSON.parse an object with a binary field that was stringified,
+        // you don't get a Buffer/Uint8Array back but rather a JSON representation of it
+        // So we special case here to convert JSON representations of buffers back to the expected type.
+        decryptedItem[fieldName] = this.convertBinaryFieldsToBuffers(fieldValue)
+      }
     })
 
     memzero(decryptionKey)
-
     return { decryptedItem }
   }
 
@@ -89,9 +98,7 @@ export class LibsodiumEncryptor implements Encryptor {
   }
 
   private convertBinaryFieldsToBuffers(obj: any): any {
-    if (obj === null || obj === undefined) {
-      return obj
-    } else if (this.isJSONBuffer(obj)) {
+    if (this.isJSONBuffer(obj)) {
       return Buffer.from(obj)
     } else if (typeof obj === "object") {
       Object.keys(obj).forEach((key) => {

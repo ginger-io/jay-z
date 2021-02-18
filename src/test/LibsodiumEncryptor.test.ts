@@ -17,8 +17,7 @@ describe("LibsodiumEncryptor", () => {
     "accountNumber",
     "balance",
     "routingNumber",
-    "notes",
-    "bankName"
+    "notes"
   ]
 
   it("should encrypt an item", async () => {
@@ -73,6 +72,14 @@ describe("LibsodiumEncryptor", () => {
   })
 
   it("should decrypt an item with undefined field", async () => {
+    const fieldsToEncrypt: (keyof BankAccount)[] = [
+      "accountNumber",
+      "balance",
+      "routingNumber",
+      "notes",
+      "bankName"
+    ]
+
     const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
     const { dataKey } = await dataKeyProvider.generateDataKey()
 

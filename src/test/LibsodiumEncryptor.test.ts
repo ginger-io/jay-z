@@ -17,7 +17,8 @@ describe("LibsodiumEncryptor", () => {
     "accountNumber",
     "balance",
     "routingNumber",
-    "notes"
+    "notes",
+    "bankName"
   ]
 
   it("should encrypt an item", async () => {
@@ -69,6 +70,27 @@ describe("LibsodiumEncryptor", () => {
     })
 
     expect(decryptedItem).toEqual(account)
+  })
+
+  it("should decrypt an item with undefined field", async () => {
+    const dataKeyProvider = await FixedDataKeyProvider.forLibsodium()
+    const { dataKey } = await dataKeyProvider.generateDataKey()
+
+    const item = { ...account, bankName: undefined }
+    const { encryptedItem, nonce } = await encryptor.encrypt({
+      item,
+      fieldsToEncrypt,
+      dataKey
+    })
+
+    const { decryptedItem } = await encryptor.decrypt({
+      encryptedItem,
+      nonce,
+      dataKey,
+      fieldsToDecrypt: fieldsToEncrypt
+    })
+
+    expect(decryptedItem).toEqual(item)
   })
 
   it("should encrypt and decrypt binary fields", async () => {

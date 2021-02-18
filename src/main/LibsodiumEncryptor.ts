@@ -63,7 +63,8 @@ export class LibsodiumEncryptor implements Encryptor {
     fieldsToDecrypt.forEach((fieldName) => {
       const cipherText = encryptedItem[fieldName]
       const json = crypto_secretbox_open_easy(cipherText, nonce, decryptionKey)
-      const fieldValue = JSON.parse(to_string(json))
+      const text = to_string(json)
+      const fieldValue = text !== "undefined" ? JSON.parse(text) : undefined;
 
       // If you JSON.parse an object with a binary field that was stringified,
       // you don't get a Buffer/Uint8Array back but rather a JSON representation of it
@@ -88,7 +89,9 @@ export class LibsodiumEncryptor implements Encryptor {
   }
 
   private convertBinaryFieldsToBuffers(obj: any): any {
-    if (this.isJSONBuffer(obj)) {
+    if (obj === null || obj === undefined) {
+      return obj
+    } else if (this.isJSONBuffer(obj)) {
       return Buffer.from(obj)
     } else if (typeof obj === "object") {
       Object.keys(obj).forEach((key) => {
